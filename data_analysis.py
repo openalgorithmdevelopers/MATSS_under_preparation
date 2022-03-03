@@ -39,9 +39,10 @@ F, p = f_oneway(X_0, X_1, X_2)
 # print(p)
 # print(ALL)
 
-# import seaborn as sns
+import seaborn as sns
 
-# sns.displot(ALL)
-# plt.show()
+#sns.boxplot(X_0.flatten())
+sns.displot(X_0.flatten())
+plt.show()
 
 
