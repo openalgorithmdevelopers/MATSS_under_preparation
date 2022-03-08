@@ -84,7 +84,12 @@ def clusterBasedClassification(X, Y):
     d_2 = PC[clusters['cluster'] == 2]
     return d_0, d_1, d_2
 
-dataset = pd.read_csv ('master_dataset.csv')
+
+
+
+######################### main code starts here ###################################
+
+dataset = pd.read_csv ('master_dataset_GeMAPS.csv')
 
 Y = dataset.iloc[:,3]
 X = dataset.iloc[:,4:]
@@ -106,6 +111,7 @@ P1 = result[result['target'] == 1]
 P2 = result[result['target'] == 2]
 
 plotScatter(P0.iloc[:,0], P1.iloc[:,0], P2.iloc[:,0])
+plt.show()
 perform_t_test(P0.iloc[:,0], P0.iloc[:,1])
 
 ######################################
