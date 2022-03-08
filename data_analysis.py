@@ -3,37 +3,18 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-from sklearn import preprocessing
-from scipy.stats import f_oneway
 from scipy import stats
+from sklearn.cluster import KMeans
+from sklearn.decomposition import PCA
 
-def set_limits(IQR, percentile75, percentile25):  
-    upper_limit = percentile75
-    lower_limit = percentile25
-    # upper_limit = percentile75 + 1.5 * IQR
-    # lower_limit = percentile25 - 1.5 * IQR
-    return upper_limit, lower_limit
+from sklearn import preprocessing
+from sklearn.preprocessing import StandardScaler
+from imblearn.under_sampling import RandomUnderSampler
 
-def findOutliers(df, column_name):
-    percentile25 = df[column_name].quantile(0.25)
-    percentile75 = df[column_name].quantile(0.75)
-    IQR = percentile75 - percentile25
-
-    upper_limit, lower_limit = set_limits(IQR, percentile75, percentile25)
-    upper_outliers = df[df[column_name] > upper_limit]
-    lower_outliers = df[df[column_name] < lower_limit]
-
-    new_df = df[df[column_name] < upper_limit]
-    new_df = df[df[column_name] > lower_limit]
-    # print(lower_limit)
-
-    # sns.boxplot(df[column_name])
-    # sns.displot(df[column_name])
-    # plt.show()
-
-    # print(df.shape)
-    # print(new_df.shape)
-    return new_df
+totalSubjects = 21
+totalUtterances = 60    #the number of utterances of words in a folder for every subject
+featureName = "mfcc"
+FEATURE_SIZE = 128
 
 def plotHistogram(data):
     fig, axs = plt.subplots(1, 1,
@@ -45,11 +26,33 @@ def plotHistogram(data):
     # Show plot
     plt.show()
 
-
+# each class should be equal to find equal indices
+def plotScatter(data_0, data_1, data_2):
+    indices = np.arange(1,len(data_2)+1, 1)
+    plt.scatter(indices, data_0, color = "red")
+    plt.scatter(indices, data_1, color = "green")
+    plt.scatter(indices, data_2, color = "blue")
 ## #sns.boxplot(X_0.flatten())
 #sns.displot(X_0_mean_feature)
 #plt.show()
 
+def rescale(data, mi, mx):
+    minmax_scale = preprocessing.MinMaxScaler(feature_range=(mi, mx))
+    return(minmax_scale.fit_transform(data))
+
+#rescaels data with mean = 0 and vriance = 1
+def rescaleStandard(data):
+    scaled = StandardScaler().fit_transform(data)
+    return scaled
+
+def perform_PCA(data):
+    pca = PCA(n_components=2)
+    principalComponents = pca.fit_transform(data)
+    return principalComponents
+
+def getMeanFeatureSet(data):
+    data_mean_feature = np.mean(data, axis=1)
+    return data_mean_feature
 
 def perform_t_test(group1, group2):
     t_value,p_value=stats.ttest_rel(group1,group2)
@@ -58,36 +61,73 @@ def perform_t_test(group1, group2):
     
     print('p-value for two tailed test is %f'%p_value)
 
+def clusterBasedClassification(X, Y):
+    km = KMeans(3)
+    
+    
+    clusters = km.fit_predict(X)
+    clusters = pd.DataFrame(clusters)
+    clusters.columns = ['cluster']
+    C_0 = X[clusters['cluster'] == 0]
+    C_1 = X[clusters['cluster'] == 1]
+    C_2 = X[clusters['cluster'] == 2]
+    
+    
+    PC = perform_PCA(X)
+    PC = pd.DataFrame(PC)
+    
+    Y = pd.DataFrame(Y)
+    Y.columns = ["TrueClass"]
+    
+    d_0 = PC[clusters['cluster'] == 0]
+    d_1 = PC[clusters['cluster'] == 1]
+    d_2 = PC[clusters['cluster'] == 2]
+    return d_0, d_1, d_2
+
 dataset = pd.read_csv ('master_dataset.csv')
+
 Y = dataset.iloc[:,3]
 X = dataset.iloc[:,4:]
+X = rescaleStandard(X)
 
-X_0 = dataset[dataset["TrueClass"] == 0]
-X_0 = X_0.iloc[:,4:]
-X_1 = dataset[dataset["TrueClass"] == 1]
-X_1 = X_1.iloc[:,4:]
-X_2 = dataset[dataset["TrueClass"] == 2]
-X_2 = X_2.iloc[:,4:]
+#########################
+#trying with cluster to see what class
+#the KNN finds 
+d0, d1, d2 = clusterBasedClassification(X,Y)
+result = pd.concat([d0,d1,d2])
 
+rus = RandomUnderSampler(random_state=42, replacement=True)# fit predictor and target variable
+#X, Y = rus.fit_resample(X, Y)
 
-def rescale(data, mi, mx):
-    minmax_scale = preprocessing.MinMaxScaler(feature_range=(mi, mx))
-    return(minmax_scale.fit_transform(data))
+result, Y = rus.fit_resample(result, Y)
+result['target'] = Y
+P0 = result[result['target'] == 0]
+P1 = result[result['target'] == 1]
+P2 = result[result['target'] == 2]
 
-X_0 = rescale(X_0, 0, 1)
-X_1 = rescale(X_1, 0, 1)
-X_2 = rescale(X_2, 0, 1)
+plotScatter(P0.iloc[:,0], P1.iloc[:,0], P2.iloc[:,0])
+perform_t_test(P0.iloc[:,0], P0.iloc[:,1])
 
-X_0_mean_feature = np.mean(X_0, axis=1)
-X_1_mean_feature = np.mean(X_1, axis=1)
-X_2_mean_feature = np.mean(X_2, axis=1)
+######################################
+# perform the analysis with the original classes
+Y = dataset.iloc[:,3]
+X = dataset.iloc[:,4:]
+X = rescaleStandard(X)
 
-perform_t_test(X_0_mean_feature[:150], X_1_mean_feature[:150])
+X, Y = rus.fit_resample(X, Y)
 
+PC = perform_PCA(X)
+PC = pd.DataFrame(PC)
 
-#print(pd.DataFrame(X_0.flatten()).describe())
-#print(pd.DataFrame(X_1.flatten()).describe())
-#print(pd.DataFrame(X_2.flatten()).describe())
+Y = pd.DataFrame(Y)
+Y.columns = ["TrueClass"]
+
+d_0 = PC[Y["TrueClass"] == 0]
+d_1 = PC[Y["TrueClass"] == 1]
+d_2 = PC[Y["TrueClass"] == 2]
+
+plotScatter(d_0.iloc[:,0], d_1.iloc[:,0], d_2.iloc[:,0])
+perform_t_test(d_0.iloc[:,0], d_1.iloc[:,0])
 
 # from scipy.stats import f_oneway
 
@@ -97,6 +137,4 @@ perform_t_test(X_0_mean_feature[:150], X_1_mean_feature[:150])
 # # print(p)
 # # print(ALL)
 
-km = KMeans(n_clusters=3)
 
-# Creating histogram
