@@ -46,9 +46,11 @@ def rescaleStandard(data):
     return scaled
 
 def perform_PCA(data):
-    pca = PCA(n_components=2)
+    #pca = PCA(n_components=2)
+    pca = PCA(0.95)
+    
     principalComponents = pca.fit_transform(data)
-    return principalComponents
+    return principalComponents, pca.explained_variance_ratio_
 
 def getMeanFeatureSet(data):
     data_mean_feature = np.mean(data, axis=1)
@@ -84,6 +86,13 @@ def clusterBasedClassification(X, Y):
     d_2 = PC[clusters['cluster'] == 2]
     return d_0, d_1, d_2
 
+def generate_PCA_features():
+    
+    
+    return pca_based_features
+
+
+#####################################################################
 dataset = pd.read_csv ('master_dataset.csv')
 
 Y = dataset.iloc[:,3]
@@ -129,6 +138,7 @@ d_2 = PC[Y["TrueClass"] == 2]
 plotScatter(d_0.iloc[:,0], d_1.iloc[:,0], d_2.iloc[:,0])
 perform_t_test(d_0.iloc[:,0], d_1.iloc[:,0])
 
+generate_PCA_features()
 # from scipy.stats import f_oneway
 
 # #perform one-way ANOVA
