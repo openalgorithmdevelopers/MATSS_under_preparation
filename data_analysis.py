@@ -1,4 +1,3 @@
-
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -46,9 +45,13 @@ def rescaleStandard(data):
     return scaled
 
 def perform_PCA(data):
+<<<<<<< HEAD
     #pca = PCA(n_components=2)
     pca = PCA(0.95)
     
+=======
+    pca = PCA(n_components=4)
+>>>>>>> 0bf2d8826c5a604deda12af8d3bf1d5ff57d85ce
     principalComponents = pca.fit_transform(data)
     return principalComponents, pca.explained_variance_ratio_
 
@@ -57,7 +60,11 @@ def getMeanFeatureSet(data):
     return data_mean_feature
 
 def perform_t_test(group1, group2):
-    t_value,p_value=stats.ttest_rel(group1,group2)
+    print(group1.shape[0])
+    if(group1.shape[0] == group2.shape[0]):
+        t_value,p_value=stats.ttest_rel(group1,group2)        
+    else:
+        t_value,p_value=stats.ttest_ind(group1,group2)
     
     print('Test statistic is %f'%float("{:.6f}".format(t_value)))
     
@@ -86,6 +93,7 @@ def clusterBasedClassification(X, Y):
     d_2 = PC[clusters['cluster'] == 2]
     return d_0, d_1, d_2
 
+<<<<<<< HEAD
 def generate_PCA_features():
     
     
@@ -94,6 +102,12 @@ def generate_PCA_features():
 
 #####################################################################
 dataset = pd.read_csv ('master_dataset.csv')
+=======
+
+######################### main code starts here ###################################
+
+dataset = pd.read_csv ('master_dataset_GeMAPS.csv')
+>>>>>>> 0bf2d8826c5a604deda12af8d3bf1d5ff57d85ce
 
 Y = dataset.iloc[:,3]
 X = dataset.iloc[:,4:]
@@ -115,6 +129,7 @@ P1 = result[result['target'] == 1]
 P2 = result[result['target'] == 2]
 
 plotScatter(P0.iloc[:,0], P1.iloc[:,0], P2.iloc[:,0])
+plt.show()
 perform_t_test(P0.iloc[:,0], P0.iloc[:,1])
 
 ######################################
@@ -123,7 +138,7 @@ Y = dataset.iloc[:,3]
 X = dataset.iloc[:,4:]
 X = rescaleStandard(X)
 
-X, Y = rus.fit_resample(X, Y)
+#X, Y = rus.fit_resample(X, Y)
 
 PC = perform_PCA(X)
 PC = pd.DataFrame(PC)
@@ -135,8 +150,16 @@ d_0 = PC[Y["TrueClass"] == 0]
 d_1 = PC[Y["TrueClass"] == 1]
 d_2 = PC[Y["TrueClass"] == 2]
 
-plotScatter(d_0.iloc[:,0], d_1.iloc[:,0], d_2.iloc[:,0])
-perform_t_test(d_0.iloc[:,0], d_1.iloc[:,0])
+#plotScatter(d_0.iloc[:,0], d_1.iloc[:,0], d_2.iloc[:,0])
+print("Performing Welch t test btw 0 and 1")
+perform_t_test(d_0[0], d_0[1])
+
+print("Performing Welch t test btw 1 and 2")
+perform_t_test(d_1[0], d_2[1])
+
+print("Performing Welch t test btw 0 and 2")
+perform_t_test(d_0[0], d_1[1])
+#perform_t_test(d_0.iloc[:,0], d_1.iloc[:,0])
 
 generate_PCA_features()
 # from scipy.stats import f_oneway
@@ -146,5 +169,3 @@ generate_PCA_features()
 # # print(F)
 # # print(p)
 # # print(ALL)
-
-
