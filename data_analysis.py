@@ -45,13 +45,9 @@ def rescaleStandard(data):
     return scaled
 
 def perform_PCA(data):
-<<<<<<< HEAD
     #pca = PCA(n_components=2)
     pca = PCA(0.95)
-    
-=======
     pca = PCA(n_components=4)
->>>>>>> 0bf2d8826c5a604deda12af8d3bf1d5ff57d85ce
     principalComponents = pca.fit_transform(data)
     return principalComponents, pca.explained_variance_ratio_
 
@@ -60,7 +56,6 @@ def getMeanFeatureSet(data):
     return data_mean_feature
 
 def perform_t_test(group1, group2):
-    print(group1.shape[0])
     if(group1.shape[0] == group2.shape[0]):
         t_value,p_value=stats.ttest_rel(group1,group2)        
     else:
@@ -69,6 +64,40 @@ def perform_t_test(group1, group2):
     print('Test statistic is %f'%float("{:.6f}".format(t_value)))
     
     print('p-value for two tailed test is %f'%p_value)
+    
+def perform_t_test_3_group(d_0, d_1, d_2):
+    print("###############################################")
+    print("Between 0 and 1")
+    perform_t_test(d_0, d_1)
+    print("Between 0 and 2")
+    perform_t_test(d_0, d_2)
+    print("Between 1 and 2")
+    perform_t_test(d_1, d_2)
+    print("###############################################")
+
+def perform_kruskal_test_at_once(d_0, d_1, d_2):
+    t,p = stats.kruskal(d_0, d_1, d_2)
+    print('p-value for two tailed test is %f'%p)
+
+          
+def perform_kruskal_test_repeated(d_0, d_1, d_2):
+    print("###############################################")
+    print("Between 0 and 1")
+    t,p = stats.kruskal(d_0, d_1)
+    print('p-value for two tailed test is %f'%p)
+    print("Between 0 and 2")
+    t,p = stats.kruskal(d_0, d_2)
+    print('p-value for two tailed test is %f'%p)
+    print("Between 1 and 2")
+    t,p = stats.kruskal(d_1, d_2)
+    print('p-value for two tailed test is %f'%p)
+    print("###############################################")
+          
+def post_hoc_analysis_tukey(df):
+    tukey = pairwise_tukeyhsd(endog=df['score'],
+                          groups=df['group'],
+                          alpha=0.05)
+    print(tukey)
 
 def clusterBasedClassification(X, Y):
     km = KMeans(3)
@@ -93,79 +122,35 @@ def clusterBasedClassification(X, Y):
     d_2 = PC[clusters['cluster'] == 2]
     return d_0, d_1, d_2
 
-<<<<<<< HEAD
-def generate_PCA_features():
-    
-    
-    return pca_based_features
+def PCA_based_stats():
+    dataset = pd.read_csv('dataset_pca.csv')
 
-
-#####################################################################
-dataset = pd.read_csv ('master_dataset.csv')
-=======
+    X = dataset.iloc[:,5:]
+    Y = dataset.iloc[:,3]
+    
+    d_0 = X[Y==0]
+    d_1 = X[Y==1]
+    d_2 = X[Y==2]
+    
+    no_PCA_components = 5
+    i = 0
+    while i < no_PCA_components:
+        print("###############################################")
+        print("performing welch test for " + str(i+1) + "  PCA")
+        print("Between 0 and 1")
+        perform_t_test(d_0.iloc[:,i], d_1.iloc[:,i])
+        print("Between 0 and 2")
+        perform_t_test(d_0.iloc[:,i], d_2.iloc[:,i])
+        print("Between 1 and 2")
+        perform_t_test(d_1.iloc[:,i], d_2.iloc[:,i])
+        print("###############################################")
+        i += 1
+    
+    #X = dataset.iloc[:,3:5]
+#    X["TrueClass"] = dataset.iloc[:,3]
+    ax = sns.boxplot(x="pca_feature_0", y="TrueClass", data=dataset)
 
 ######################### main code starts here ###################################
 
-dataset = pd.read_csv ('master_dataset_GeMAPS.csv')
->>>>>>> 0bf2d8826c5a604deda12af8d3bf1d5ff57d85ce
+#dataset = pd.read_csv ('master_dataset_GeMAPS.csv')
 
-Y = dataset.iloc[:,3]
-X = dataset.iloc[:,4:]
-X = rescaleStandard(X)
-
-#########################
-#trying with cluster to see what class
-#the KNN finds 
-d0, d1, d2 = clusterBasedClassification(X,Y)
-result = pd.concat([d0,d1,d2])
-
-rus = RandomUnderSampler(random_state=42, replacement=True)# fit predictor and target variable
-#X, Y = rus.fit_resample(X, Y)
-
-result, Y = rus.fit_resample(result, Y)
-result['target'] = Y
-P0 = result[result['target'] == 0]
-P1 = result[result['target'] == 1]
-P2 = result[result['target'] == 2]
-
-plotScatter(P0.iloc[:,0], P1.iloc[:,0], P2.iloc[:,0])
-plt.show()
-perform_t_test(P0.iloc[:,0], P0.iloc[:,1])
-
-######################################
-# perform the analysis with the original classes
-Y = dataset.iloc[:,3]
-X = dataset.iloc[:,4:]
-X = rescaleStandard(X)
-
-#X, Y = rus.fit_resample(X, Y)
-
-PC = perform_PCA(X)
-PC = pd.DataFrame(PC)
-
-Y = pd.DataFrame(Y)
-Y.columns = ["TrueClass"]
-
-d_0 = PC[Y["TrueClass"] == 0]
-d_1 = PC[Y["TrueClass"] == 1]
-d_2 = PC[Y["TrueClass"] == 2]
-
-#plotScatter(d_0.iloc[:,0], d_1.iloc[:,0], d_2.iloc[:,0])
-print("Performing Welch t test btw 0 and 1")
-perform_t_test(d_0[0], d_0[1])
-
-print("Performing Welch t test btw 1 and 2")
-perform_t_test(d_1[0], d_2[1])
-
-print("Performing Welch t test btw 0 and 2")
-perform_t_test(d_0[0], d_1[1])
-#perform_t_test(d_0.iloc[:,0], d_1.iloc[:,0])
-
-generate_PCA_features()
-# from scipy.stats import f_oneway
-
-# #perform one-way ANOVA
-# F, p = f_oneway(X_0, X_1, X_2)
-# # print(F)
-# # print(p)
-# # print(ALL)
