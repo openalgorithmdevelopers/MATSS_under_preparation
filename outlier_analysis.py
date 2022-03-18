@@ -21,22 +21,29 @@ def plot_distribution(d_0, d_1, d_2):
     sns.distplot(d_2)
     plt.show()
     
-def remove_outlier(data):
-    percentile25 = data.quantile(0.25)
-    percentile75 = data.quantile(0.75)
+def remove_outlier(dataset, outlier_column_name):
+    #data = dataset[[outlier_column_name, 'SampleNo']]
+    data = dataset
+    percentile25 = data[outlier_column_name].quantile(0.25)
+    percentile75 = data[outlier_column_name].quantile(0.75)
     iqr = percentile75 - percentile25
-    #upper_limit = percentile75 + 1.5 * iqr
-    upper_limit = percentile75 + iqr
-    #lower_limit = percentile25 - 1.5 * iqr
-    lower_limit = percentile25 - iqr
+    upper_limit = percentile75 + 1.5 * iqr
+#    upper_limit = percentile75 + iqr
+    lower_limit = percentile25 - 1.5 * iqr
+#    lower_limit = percentile25 - iqr
     
-    new_df = data[data < upper_limit]
-    new_df = new_df[new_df > lower_limit]
-    return new_df
+    new_df = data[data[outlier_column_name] < upper_limit]
+    new_df = new_df[new_df[outlier_column_name] > lower_limit]
+    
+    a = dataset['SampleNo']
+    b = new_df['SampleNo']
+    indices = np.setdiff1d(a,b)
+    return new_df, indices
 
+#d_0, b = remove_outlier_by_value(d_0, component, 7.5, -8)
 def remove_outlier_by_value(dataset, outlier_column_name, cutoff_mx, cutoff_mi):
-    
-    d_selected = dataset[[outlier_column_name, 'SampleNo']]
+    d_selected = dataset
+#    d_selected = dataset[[outlier_column_name, 'SampleNo']]
     d_selected_outlier_removed = d_selected[d_selected[outlier_column_name] < cutoff_mx]
     d_selected_outlier_removed = d_selected_outlier_removed[d_selected_outlier_removed[outlier_column_name] > cutoff_mi]
     a = d_selected['SampleNo']
@@ -49,22 +56,21 @@ dataset = pd.read_csv('dataset_pca.csv')
 X = dataset.iloc[:,6]
 Y = dataset.iloc[:,3]
 
-d_0 = X[Y==0]
-d_1 = X[Y==1]
-d_2 = X[Y==2]
+d_0 = dataset[dataset['TrueClass'] == 0]
+d_1 = dataset[dataset['TrueClass'] == 1]
+d_2 = dataset[dataset['TrueClass'] == 2]
 
-d_0_dataset = dataset[dataset['TrueClass'] == 0]
-outlier_feature_name = 'pca_feature_1'
-d_0_cleaned,b = remove_outlier_by_value(d_0_dataset, outlier_feature_name, 7.5, d_0_dataset[outlier_feature_name].min())
-
-#plot_distribution(d_0,d_1,d_2)
-perform_t_test_3_group(d_0, d_1, d_2)
-print("######## perfroming kruskal wallis test ###########")
-perform_kruskal_test_repeated(d_0,d_1,d_2)
-print("after cleaning")
-perform_t_test_3_group(d_0_cleaned[outlier_feature_name], d_1, d_2)
-#plot_distribution(d_0_cleaned, d_1_cleaned, d_2_cleaned)
-
-print("######## perfroming kruskal wallis test ###########")
-perform_kruskal_test_repeated(d_0_cleaned[outlier_feature_name],d_1,d_2)
+component = 'pca_component_1'
+#d_0_cleaned,b = remove_outlier_by_value(d_0_dataset, outlier_feature_name, 7.5, d_0_dataset[outlier_feature_name].min())
+#
+##plot_distribution(d_0,d_1,d_2)
+perform_t_test_3_group(d_0[component], d_1[component], d_2[component])
+#print("######## perfroming kruskal wallis test ###########")
+#perform_kruskal_test_repeated(d_0,d_1,d_2)
+#print("after cleaning")
+#perform_t_test_3_group(d_0_cleaned[outlier_feature_name], d_1, d_2)
+##plot_distribution(d_0_cleaned, d_1_cleaned, d_2_cleaned)
+#
+#print("######## perfroming kruskal wallis test ###########")
+#perform_kruskal_test_repeated(d_0_cleaned[outlier_feature_name],d_1,d_2)
 

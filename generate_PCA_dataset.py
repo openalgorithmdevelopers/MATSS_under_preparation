@@ -55,9 +55,9 @@ column_names.append('UtteranceNo')
 column_names.append('TrueClass')
 column_names.append('weighted_PCA_feature')
 
-i = 0
-while i < PC.shape[1]:
-    column_names.append('pca_feature_' + str(i)) 
+i = 1
+while i <= PC.shape[1]:
+    column_names.append('pca_component_' + str(i)) 
     i += 1
 pca_based_features = pd.DataFrame(dataset.iloc[:,:68], columns = column_names)
 #pca_based_features = dataset.iloc[:,:3]
