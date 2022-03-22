@@ -3,6 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 from scipy import stats
+import pingouin as pg
 from sklearn.cluster import KMeans
 from sklearn.decomposition import PCA
 
@@ -74,6 +75,9 @@ def perform_t_test_3_group(d_0, d_1, d_2):
     print("Between 1 and 2")
     perform_t_test(d_1, d_2)
     print("###############################################")
+
+def perform_welch_annova(d_0, d_1, d_2):
+    pg.welch_anova(dv='score', between='group', data=df)
 
 def perform_kruskal_test_at_once(d_0, d_1, d_2):
     t,p = stats.kruskal(d_0, d_1, d_2)
