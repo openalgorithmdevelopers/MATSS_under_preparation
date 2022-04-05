@@ -27,11 +27,10 @@ def plotHistogram(data):
     plt.show()
 
 # each class should be equal to find equal indices
-def plotScatter(data_0, data_1, data_2):
-    indices = np.arange(1,len(data_2)+1, 1)
-    plt.scatter(indices, data_0, color = "red")
-    plt.scatter(indices, data_1, color = "green")
-    plt.scatter(indices, data_2, color = "blue")
+def plotScatter(d_0,d_1,d_2):
+    plt.scatter(np.arange(1,d_0.shape[0]+1,1), d_0, color='red')
+    plt.scatter(np.arange(1,d_1.shape[0]+1,1), d_1, color='green')
+    plt.scatter(np.arange(1,d_2.shape[0]+1,1), d_2, color='blue')
 ## #sns.boxplot(X_0.flatten())
 #sns.displot(X_0_mean_feature)
 #plt.show()

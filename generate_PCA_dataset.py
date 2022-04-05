@@ -20,6 +20,7 @@ from imblearn.under_sampling import RandomUnderSampler
 
 #dataset = pd.read_csv ('master_dataset_cleaned.csv')
 dataset = pd.read_csv ('master_dataset.csv')
+dataset['TrueClass'] = dataset['TrueClass'].astype(int)
 #dataset = pd.read_csv ('master_dataset_GeMAPS.csv')
 
 Y = dataset.iloc[:,3]
@@ -73,16 +74,24 @@ while row < PC.shape[0]:
 pca_based_features['weighted_PCA_feature'] = weighted_PCA_feature
 pca_based_features['TrueClass'] = Y
 
-data_0 = pca_based_features[pca_based_features['TrueClass'] == 0]
-data_1 = pca_based_features[pca_based_features['TrueClass'] == 1]
-data_2 = pca_based_features[pca_based_features['TrueClass'] == 2]
+pca_based_features['mean_PCA'] = 0
+mn = 0
+i = 0
+while i < pca_based_features.shape[0]:
+    mn = pca_based_features.iloc[i, 5:].mean()
+    pca_based_features.iloc[i, 68] = mn
+    i += 1
 
-d_0 = data_0['weighted_PCA_feature']
-d_1 = data_1['weighted_PCA_feature']
-d_2 = data_2['weighted_PCA_feature']
-
-plt.scatter(np.arange(1,d_0.shape[0]+1,1), d_0, color='red')
-plt.scatter(np.arange(1,d_1.shape[0]+1,1), d_1, color='green')
-plt.scatter(np.arange(1,d_2.shape[0]+1,1), d_2, color='blue')
+#data_0 = pca_based_features[pca_based_features['TrueClass'] == 0]
+#data_1 = pca_based_features[pca_based_features['TrueClass'] == 1]
+#data_2 = pca_based_features[pca_based_features['TrueClass'] == 2]
+#
+#d_0 = data_0['weighted_PCA_feature']
+#d_1 = data_1['weighted_PCA_feature']
+#d_2 = data_2['weighted_PCA_feature']
+#
+#plt.scatter(np.arange(1,d_0.shape[0]+1,1), d_0, color='red')
+#plt.scatter(np.arange(1,d_1.shape[0]+1,1), d_1, color='green')
+#plt.scatter(np.arange(1,d_2.shape[0]+1,1), d_2, color='blue')
 
 pca_based_features.to_csv('./dataset_pca.csv', index=False)
